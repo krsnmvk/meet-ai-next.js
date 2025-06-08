@@ -1,25 +1,21 @@
-'use client';
+import { redirect } from 'next/navigation';
 
-import { useRouter } from 'next/navigation';
+import { headers } from 'next/headers';
 
-import { authClient } from '@/lib/auth-client';
+import { auth } from '@/lib/auth';
 
-import { Button } from '@/components/ui/button';
+import HomeView from '@/modules/home/ui/views/home-view';
 
-export default function Home() {
-  const router = useRouter();
+export default async function Home() {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) redirect('/sign-in');
 
   return (
     <div className="p-5">
-      <Button
-        onClick={() =>
-          authClient.signOut({
-            fetchOptions: { onSuccess: () => router.push('/sign-in') },
-          })
-        }
-      >
-        Logout
-      </Button>
+      <HomeView />
     </div>
   );
 }

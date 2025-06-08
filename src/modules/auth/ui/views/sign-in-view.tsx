@@ -37,6 +37,7 @@ import { Loader2Icon, OctagonAlertIcon } from 'lucide-react';
 export default function SignInView() {
   const [error, setError] = useState<string | null>();
   const [isPending, setIsPending] = useState(false);
+  const [isSocialPending, setSocialIsPending] = useState(false);
 
   const form = useForm<SignInSchema>({
     resolver: zodResolver(signinSchema),
@@ -70,6 +71,27 @@ export default function SignInView() {
     );
   }
 
+  async function onSosial(provider: 'google' | 'github') {
+    setError(null);
+    setSocialIsPending(true);
+
+    await authClient.signIn.social(
+      {
+        provider: provider,
+        callbackURL: '/',
+      },
+      {
+        onSuccess: () => {
+          setSocialIsPending(false);
+        },
+        onError: (err) => {
+          setError(err.error.message);
+          setSocialIsPending(false);
+        },
+      }
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <Card className="p-0 overflow-hidden">
@@ -93,7 +115,7 @@ export default function SignInView() {
                         <FormControl>
                           <Input
                             type="email"
-                            disabled={isPending}
+                            disabled={isPending || isSocialPending}
                             placeholder="jhon@example.com"
                             {...field}
                           />
@@ -111,7 +133,7 @@ export default function SignInView() {
                         <FormControl>
                           <Input
                             type="password"
-                            disabled={isPending}
+                            disabled={isPending || isSocialPending}
                             placeholder="******"
                             {...field}
                           />
@@ -130,7 +152,7 @@ export default function SignInView() {
                   )}
                   <Button
                     type="submit"
-                    disabled={isPending}
+                    disabled={isPending || isSocialPending}
                     variant="default"
                     size="lg"
                     className="w-full"
@@ -149,7 +171,8 @@ export default function SignInView() {
                   <div className="grid grid-cols-2 gap-4">
                     <Button
                       type="button"
-                      disabled={isPending}
+                      onClick={() => onSosial('google')}
+                      disabled={isPending || isSocialPending}
                       variant="outline"
                       size="lg"
                       className="w-full"
@@ -163,7 +186,8 @@ export default function SignInView() {
                     </Button>
                     <Button
                       type="button"
-                      disabled={isPending}
+                      onClick={() => onSosial('github')}
+                      disabled={isPending || isSocialPending}
                       variant="outline"
                       size="lg"
                       className="w-full"
@@ -182,7 +206,7 @@ export default function SignInView() {
                       href="/sign-up"
                       className={cn(
                         'underline underline-offset-4',
-                        isPending && 'pointer-events-none'
+                        (isPending || isSocialPending) && 'pointer-events-none'
                       )}
                     >
                       Sign up
