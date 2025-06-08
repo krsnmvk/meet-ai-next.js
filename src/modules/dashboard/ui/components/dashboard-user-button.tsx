@@ -11,7 +11,6 @@ import {
   DrawerContent,
   DrawerDescription,
   DrawerFooter,
-  DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
@@ -72,16 +71,21 @@ export default function DashboardUserButton() {
           <ChevronDownIcon className="size-4 shrink-0" />
         </DrawerTrigger>
         <DrawerContent>
-          <DrawerHeader>
+          <div className="p-5">
             <DrawerTitle>{data.user.name}</DrawerTitle>
             <DrawerDescription>{data.user.email}</DrawerDescription>
-          </DrawerHeader>
+          </div>
           <DrawerFooter>
-            <Button type="button" variant="ghost">
+            <Button type="button" variant="ghost" className="justify-between">
               <span>Billing</span>
               <CreditCardIcon className="size-4" />
             </Button>
-            <Button type="button" onClick={onLogout} variant="ghost">
+            <Button
+              type="button"
+              onClick={onLogout}
+              variant="ghost"
+              className="justify-between"
+            >
               <span>Logout</span>
               <LogOutIcon className="size-4" />
             </Button>
