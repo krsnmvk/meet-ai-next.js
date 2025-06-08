@@ -1,6 +1,12 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { account, session, user, verification } from '@/drizzle/schema';
+import {
+  account,
+  agentsTable,
+  session,
+  user,
+  verification,
+} from '@/drizzle/schema';
 
 const sql = neon(process.env.DATABASE_URL!);
 export const db = drizzle({
@@ -10,5 +16,6 @@ export const db = drizzle({
     session,
     user,
     verification,
+    agentsTable,
   },
 });
