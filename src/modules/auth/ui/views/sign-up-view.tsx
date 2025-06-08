@@ -198,7 +198,7 @@ export default function SignUpView() {
               </div>
             </form>
           </Form>
-          <div className="bg-radial from-green-700 to-green-900 md:flex flex-col items-center justify-center gap-y-4 hidden">
+          <div className="bg-radial from-sidebar-accent to-sidebar md:flex flex-col items-center justify-center gap-y-4 hidden">
             <figure className="relative size-24 overflow-hidden">
               <Image src="/logo.svg" alt="Logo" fill className="object-cover" />
             </figure>
