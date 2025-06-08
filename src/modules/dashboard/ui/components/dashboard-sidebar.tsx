@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 
 import { usePathname } from 'next/navigation';
 
-import UserButton from './user-button';
+import DashboardUserButton from './dashboard-user-button';
 
 const firstSection = [
   { text: 'Meetings', url: '/meetings', icon: VideoIcon },
@@ -99,7 +99,7 @@ export default function DashboardSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="text-white">
-        <UserButton />
+        <DashboardUserButton />
       </SidebarFooter>
     </Sidebar>
   );
