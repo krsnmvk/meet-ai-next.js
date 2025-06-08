@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Roboto } from 'next/font/google';
 import './globals.css';
 
+import TRPCReactProvider from '@/trpc/client';
+
 const roboto = Roboto({
   subsets: ['latin'],
 });
@@ -18,7 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${roboto.className} antialiased`}>{children}</body>
+      <body className={`${roboto.className} antialiased`}>
+        <TRPCReactProvider>{children}</TRPCReactProvider>
+      </body>
     </html>
   );
 }
