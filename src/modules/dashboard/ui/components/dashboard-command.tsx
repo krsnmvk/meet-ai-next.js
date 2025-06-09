@@ -1,4 +1,4 @@
-import { CommandDialog, CommandInput } from '@/components/ui/command';
+import { CommandResponsiveDialog, CommandInput } from '@/components/ui/command';
 
 type Props = {
   isOpen: boolean;
@@ -7,8 +7,8 @@ type Props = {
 
 export default function DashboardCommand({ isOpen, setIsOpen }: Props) {
   return (
-    <CommandDialog open={isOpen} onOpenChange={setIsOpen}>
+    <CommandResponsiveDialog open={isOpen} onOpenChange={setIsOpen}>
       <CommandInput placeholder="Find a meeting or agent" />
-    </CommandDialog>
+    </CommandResponsiveDialog>
   );
 }
