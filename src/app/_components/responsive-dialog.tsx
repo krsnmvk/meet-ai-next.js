@@ -20,14 +20,14 @@ type Props = {
   title: string;
   description: string;
   children: Readonly<React.ReactNode>;
-  isOpen: boolean;
+  open: boolean;
   onOpenChange: (value: boolean) => void;
 };
 
 export default function ResponsiveDialog({
   children,
   description,
-  isOpen,
+  open,
   onOpenChange,
   title,
 }: Props) {
@@ -35,7 +35,7 @@ export default function ResponsiveDialog({
 
   if (isMobile) {
     return (
-      <Drawer open={isOpen} onOpenChange={onOpenChange}>
+      <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent>
           <DrawerHeader>
             <DrawerTitle>{title}</DrawerTitle>
@@ -48,7 +48,7 @@ export default function ResponsiveDialog({
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
