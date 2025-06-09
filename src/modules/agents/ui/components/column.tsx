@@ -1,0 +1,46 @@
+'use client';
+
+import { ColumnDef } from '@tanstack/react-table';
+import { AgentGetOne } from '../../types';
+import GeneratedAvatar from '@/app/_components/generated-avatar';
+import { CornerDownRightIcon, VideoIcon } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+
+export const columns: ColumnDef<AgentGetOne>[] = [
+  {
+    accessorKey: 'name',
+    header: 'Agent Name',
+    cell: ({ row }) => (
+      <div className="flex flex-col gap-y-1">
+        <div className="flex items-center gap-x-2">
+          <GeneratedAvatar
+            seed={row.original.name}
+            variant="botttsNeutral"
+            className="size-6"
+          />
+          <h4 className="font-semibold capitalize">{row.original.name}</h4>
+        </div>
+        <div className="flex items-center gap-x-2 overflow-hidden">
+          <CornerDownRightIcon className="text-muted-foreground size-3" />
+          <p className="text-sm max-w-48 truncate text-muted-foreground">
+            {row.original.instructions}
+          </p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    accessorKey: 'meetingCount',
+    header: 'Meetings',
+    cell: ({ row }) => (
+      <Badge
+        variant="outline"
+        className="flex items-center gap-x-2 [&>svg]:size-4"
+      >
+        <VideoIcon className="text-blue-700" />
+        {row.original.meetingCount}{' '}
+        {row.original.meetingCount === 1 ? 'meeting' : 'meetings'}
+      </Badge>
+    ),
+  },
+];
