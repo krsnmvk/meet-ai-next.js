@@ -2,7 +2,10 @@
 
 import { useForm } from 'react-hook-form';
 import { AgentGetOne } from '../../types';
-import { agentsSchema, AgentsSchema } from '../../validation/agents-schema';
+import {
+  AgentsInsertSchema,
+  agentsInsrtSchema,
+} from '../../validation/agents-schema';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTRPC } from '@/trpc/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -32,8 +35,8 @@ export default function AgentForm({
   onCancel,
   onSuccess,
 }: Props) {
-  const form = useForm<AgentsSchema>({
-    resolver: zodResolver(agentsSchema),
+  const form = useForm<AgentsInsertSchema>({
+    resolver: zodResolver(agentsInsrtSchema),
     defaultValues: {
       name: initialValues?.name ?? '',
       instructions: initialValues?.instructions ?? '',
@@ -42,17 +45,40 @@ export default function AgentForm({
 
   const queryClient = useQueryClient();
   const trpc = useTRPC();
-  const { mutate, isPending } = useMutation(
+
+  const { mutate: createAgent, isPending: isPendingCreate } = useMutation(
     trpc.agents.create.mutationOptions()
+  );
+
+  const { mutate: updateAgent, isPending: isPendingUpdate } = useMutation(
+    trpc.agents.update.mutationOptions()
   );
 
   const isEdit = initialValues?.id;
 
-  function onSubmit(values: AgentsSchema) {
+  function onSubmit(values: AgentsInsertSchema) {
     if (isEdit) {
-      console.log('Is EDit');
+      updateAgent(
+        { ...values, id: initialValues.id },
+        {
+          onSuccess: async () => {
+            if (isEdit) {
+              await queryClient.invalidateQueries(
+                trpc.agents.getOne.queryOptions({ id: initialValues.id })
+              );
+            } else {
+              await queryClient.invalidateQueries(
+                trpc.agents.getMany.queryOptions({})
+              );
+            }
+
+            onSuccess?.();
+          },
+          onError: (err) => toast.error(err.message),
+        }
+      );
     } else {
-      mutate(values, {
+      createAgent(values, {
         onSuccess: async () => {
           if (isEdit) {
             await queryClient.invalidateQueries(
@@ -88,7 +114,7 @@ export default function AgentForm({
               <FormControl>
                 <Input
                   type="text"
-                  disabled={isPending}
+                  disabled={isPendingCreate || isPendingUpdate}
                   placeholder=""
                   {...field}
                 />
@@ -105,7 +131,7 @@ export default function AgentForm({
               <FormLabel>Instructions</FormLabel>
               <FormControl>
                 <Textarea
-                  disabled={isPending}
+                  disabled={isPendingCreate || isPendingUpdate}
                   placeholder="You are a helpful math assistant that can answer questions and help with assignments"
                   {...field}
                 />
@@ -119,14 +145,14 @@ export default function AgentForm({
             <Button
               type="button"
               onClick={() => onCancel()}
-              disabled={isPending}
+              disabled={isPendingCreate || isPendingUpdate}
               variant="destructive"
             >
               Cancel
             </Button>
           )}
-          <Button type="submit" disabled={isPending}>
-            {isPending && (
+          <Button type="submit" disabled={isPendingCreate || isPendingUpdate}>
+            {(isPendingCreate || isPendingUpdate) && (
               <Loader2Icon className="size-4 animate-spin text-primary-foreground" />
             )}
             {isEdit ? 'Update' : 'Create'}
