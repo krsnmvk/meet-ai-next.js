@@ -2,7 +2,7 @@ import * as z from 'zod';
 import { db } from '@/drizzle';
 import { agentsTable } from '@/drizzle/schema';
 import { createTRPCRouter, protectProcedure } from '@/trpc/init';
-import { eq } from 'drizzle-orm';
+import { eq, getTableColumns, sql } from 'drizzle-orm';
 import { agentsSchema } from '../validation/agents-schema';
 
 export const agentsRouter = createTRPCRouter({
@@ -21,7 +21,12 @@ export const agentsRouter = createTRPCRouter({
     }),
 
   getMany: protectProcedure.query(async () => {
-    const data = await db.select().from(agentsTable);
+    const data = await db
+      .select({
+        ...getTableColumns(agentsTable),
+        meetingCount: sql<number>`5`,
+      })
+      .from(agentsTable);
 
     return data;
   }),
@@ -34,7 +39,10 @@ export const agentsRouter = createTRPCRouter({
     )
     .query(async ({ input }) => {
       const [data] = await db
-        .select()
+        .select({
+          ...getTableColumns(agentsTable),
+          meetingCount: sql<number>`5`,
+        })
         .from(agentsTable)
         .where(eq(agentsTable.id, input.id));
 
