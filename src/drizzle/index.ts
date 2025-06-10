@@ -3,6 +3,7 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import {
   account,
   agentsTable,
+  meetingsTable,
   session,
   user,
   verification,
@@ -17,5 +18,6 @@ export const db = drizzle({
     user,
     verification,
     agentsTable,
+    meetingsTable,
   },
 });

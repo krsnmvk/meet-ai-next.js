@@ -1,4 +1,11 @@
-import { pgTable, text, timestamp, boolean, uuid } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  text,
+  timestamp,
+  boolean,
+  uuid,
+  pgEnum,
+} from 'drizzle-orm/pg-core';
 
 export const user = pgTable('user', {
   id: text('id').primaryKey(),
@@ -67,6 +74,35 @@ export const agentsTable = pgTable('agents', {
     .notNull()
     .references(() => user.id, { onDelete: 'cascade' }),
   instructions: text('instructions').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at')
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const meetingStatus = pgEnum('meeting_status', [
+  'upcoming',
+  'processing',
+  'active',
+  'completed',
+  'cancelled',
+]);
+
+export const meetingsTable = pgTable('meetings', {
+  id: uuid('id').notNull().defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  agentId: uuid('agent_id')
+    .notNull()
+    .references(() => agentsTable.id, { onDelete: 'cascade' }),
+  status: meetingStatus().notNull().default('upcoming'),
+  summary: text('summary'),
+  transcriptUrl: text('transcript_url'),
+  recordingUrl: text('recording_url'),
+  startedAt: timestamp('started_at'),
+  endedAt: timestamp('ended_at'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at')
     .$onUpdate(() => new Date())
