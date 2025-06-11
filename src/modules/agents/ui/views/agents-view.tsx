@@ -2,7 +2,6 @@
 
 import { useTRPC } from '@/trpc/client';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { DataTable } from '../components/data-table';
 import { columns } from '../components/column';
 import LoadingState from '@/app/_components/loading-state';
 import ErrorState from '@/app/_components/error.state';
@@ -10,6 +9,7 @@ import EmptyState from '@/app/_components/empty.state';
 import { useAgentsFilters } from '../../nuqs/use-agents-filters';
 import DataPagination from '../components/data-pagination';
 import { useRouter } from 'next/navigation';
+import { DataTable } from '@/app/_components/data-table';
 
 export default function AgentsView() {
   const [filters, setFilters] = useAgentsFilters();
