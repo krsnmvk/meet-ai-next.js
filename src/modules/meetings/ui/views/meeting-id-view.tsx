@@ -14,6 +14,10 @@ import { toast } from 'sonner';
 import { useConfirm } from '@/app/_components/use-confirm';
 import UpddateMeetingDialog from '../components/update-meeting-dialog';
 import { useState } from 'react';
+import UpcomingState from '../components/upcoming-state';
+import ActiveState from '../components/active-state';
+import CancelledState from '../components/cancelled-state';
+import ProcessingState from '../components/processing-state';
 
 type Props = {
   meetingId: string;
@@ -60,6 +64,12 @@ export default function MeetingIdView({ meetingId }: Props) {
     );
   }
 
+  const isActive = data.status === 'active';
+  const isCancelled = data.status === 'cancelled';
+  const isCompleted = data.status === 'completed';
+  const isProcessing = data.status === 'processing';
+  const isUpcoming = data.status === 'upcoming';
+
   return (
     <>
       <ConfirmationDIalog />
@@ -75,6 +85,17 @@ export default function MeetingIdView({ meetingId }: Props) {
           onEdit={() => setOpen(true)}
           onRemove={onRemove}
         />
+        {isActive && <ActiveState meetingId={meetingId} />}
+        {isCancelled && <CancelledState />}
+        {isCompleted && <div>Completed</div>}
+        {isProcessing && <ProcessingState />}
+        {isUpcoming && (
+          <UpcomingState
+            meetingId={meetingId}
+            onCancelMeeting={() => {}}
+            isCancelling={false}
+          />
+        )}
       </div>
     </>
   );
