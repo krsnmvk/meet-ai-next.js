@@ -7,9 +7,9 @@ import LoadingState from '@/app/_components/loading-state';
 import ErrorState from '@/app/_components/error.state';
 import EmptyState from '@/app/_components/empty.state';
 import { useAgentsFilters } from '../../nuqs/use-agents-filters';
-import DataPagination from '../components/data-pagination';
 import { useRouter } from 'next/navigation';
 import { DataTable } from '@/app/_components/data-table';
+import DataPagination from '@/app/_components/data-pagination';
 
 export default function AgentsView() {
   const [filters, setFilters] = useAgentsFilters();

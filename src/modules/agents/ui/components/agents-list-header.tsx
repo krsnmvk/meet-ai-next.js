@@ -7,6 +7,7 @@ import { useState } from 'react';
 import AgentsSearchFilter from './agents-search-filter';
 import { useAgentsFilters } from '../../nuqs/use-agents-filters';
 import { DEFAULT_PAGE } from '@/constants';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 
 export default function AgentsListHeader() {
   const [open, setOpen] = useState(false);
@@ -32,20 +33,23 @@ export default function AgentsListHeader() {
             <span>New Agent</span>
           </Button>
         </div>
-        <div className="flex items-center gap-x-2 p-1">
-          <AgentsSearchFilter />
-          {isAnyFiltersModified && (
-            <Button
-              type="button"
-              onClick={onClearFilters}
-              variant="destructive"
-              size="sm"
-            >
-              <XCircleIcon />
-              <span>Clear</span>
-            </Button>
-          )}
-        </div>
+        <ScrollArea>
+          <div className="flex items-center gap-x-2 p-1">
+            <AgentsSearchFilter />
+            {isAnyFiltersModified && (
+              <Button
+                type="button"
+                onClick={onClearFilters}
+                variant="destructive"
+                size="sm"
+              >
+                <XCircleIcon />
+                <span>Clear</span>
+              </Button>
+            )}
+          </div>
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
       </div>
     </>
   );

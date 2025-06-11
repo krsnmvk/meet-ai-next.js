@@ -14,6 +14,7 @@ import {
   meetingsInsrtSchema,
   meetingsUpdateSchema,
 } from '../validation/meetings-schema';
+import { MeetingStatus } from '../types';
 
 export const meetingsRouter = createTRPCRouter({
   create: protectProcedure
@@ -40,9 +41,21 @@ export const meetingsRouter = createTRPCRouter({
           .max(MAX_PAGE_SIZE)
           .default(DEFAULT_PAGE_SIZE),
         search: z.string().nullish(),
+        agentId: z.string().nullish(),
+        status: z
+          .enum([
+            MeetingStatus.active,
+            MeetingStatus.cancelled,
+            MeetingStatus.completed,
+            MeetingStatus.processing,
+            MeetingStatus.upcoming,
+          ])
+          .nullish(),
       })
     )
     .query(async ({ ctx, input }) => {
+      const { page, pageSize, agentId, search, status } = input;
+
       const data = await db
         .select({
           ...getTableColumns(meetingsTable),
@@ -56,14 +69,14 @@ export const meetingsRouter = createTRPCRouter({
         .where(
           and(
             eq(meetingsTable.userId, ctx.auth.user.id),
-            input?.search
-              ? ilike(meetingsTable.name, `${input.search}`)
-              : undefined
+            search ? ilike(meetingsTable.name, `${search}`) : undefined,
+            status ? eq(meetingsTable.status, status) : undefined,
+            agentId ? eq(meetingsTable.agentId, agentId) : undefined
           )
         )
         .orderBy(desc(meetingsTable.createdAt), desc(meetingsTable.id))
-        .limit(input.pageSize)
-        .offset((input.page - 1) * input.pageSize);
+        .limit(pageSize)
+        .offset((page - 1) * pageSize);
 
       const [total] = await db
         .select({
@@ -74,9 +87,9 @@ export const meetingsRouter = createTRPCRouter({
         .where(
           and(
             eq(meetingsTable.userId, ctx.auth.user.id),
-            input?.search
-              ? ilike(meetingsTable.name, `${input.search}`)
-              : undefined
+            search ? ilike(meetingsTable.name, `${search}`) : undefined,
+            status ? eq(meetingsTable.status, status) : undefined,
+            agentId ? eq(meetingsTable.agentId, agentId) : undefined
           )
         );
 
