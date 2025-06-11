@@ -15,6 +15,8 @@ import {
   meetingsUpdateSchema,
 } from '../validation/meetings-schema';
 import { MeetingStatus } from '../types';
+import { streamVideo } from '@/lib/stream-video';
+import { GeneratedAvatarUri } from '@/lib/generated-avatar-uri';
 
 export const meetingsRouter = createTRPCRouter({
   create: protectProcedure
@@ -27,6 +29,50 @@ export const meetingsRouter = createTRPCRouter({
           userId: ctx.auth.user.id,
         })
         .returning();
+
+      const call = streamVideo.video.call('default', data.id);
+
+      await call.create({
+        data: {
+          created_by_id: ctx.auth.user.id,
+          custom: {
+            meetingId: data.id,
+            meetingName: data.name,
+          },
+          settings_override: {
+            transcription: {
+              language: 'en',
+              mode: 'auto-on',
+              closed_caption_mode: 'auto-on',
+            },
+            recording: {
+              quality: '1080p',
+              mode: 'auto-on',
+            },
+          },
+        },
+      });
+
+      const [agent] = await db
+        .select()
+        .from(agentsTable)
+        .where(eq(agentsTable.id, data.agentId));
+
+      if (!agent) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Agent not found' });
+      }
+
+      await streamVideo.upsertUsers([
+        {
+          id: agent.id,
+          name: agent.name,
+          role: 'user',
+          image: GeneratedAvatarUri({
+            seed: ctx.auth.user.name,
+            variant: 'botttsNeutral',
+          }),
+        },
+      ]);
 
       return data;
     }),
@@ -179,4 +225,31 @@ export const meetingsRouter = createTRPCRouter({
 
       return data;
     }),
+
+  generateToken: protectProcedure.mutation(async ({ ctx }) => {
+    await streamVideo.upsertUsers([
+      {
+        id: ctx.auth.user.id,
+        name: ctx.auth.user.name,
+        role: 'admin',
+        image:
+          ctx.auth.user.image ??
+          GeneratedAvatarUri({
+            seed: ctx.auth.user.name,
+            variant: 'botttsNeutral',
+          }),
+      },
+    ]);
+
+    const expirationTime = Math.floor(Date.now() / 1000) + 3600;
+    const issueAt = Math.floor(Date.now() / 1000) - 60;
+
+    const token = streamVideo.generateUserToken({
+      user_id: ctx.auth.user.id,
+      exp: expirationTime,
+      validity_in_seconds: issueAt,
+    });
+
+    return token;
+  }),
 });
