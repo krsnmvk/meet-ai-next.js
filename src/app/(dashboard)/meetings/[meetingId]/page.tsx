@@ -1,6 +1,4 @@
 import { auth } from '@/lib/auth';
-import { loaderSearchParams } from '@/modules/agents/nuqs/params';
-import AgentsListHeader from '@/modules/agents/ui/components/agents-list-header';
 import MeetingIdView, {
   MeetingIdViewError,
   MeetingIdViewLoading,
@@ -9,38 +7,34 @@ import { getQueryClient, trpc } from '@/trpc/server';
 import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { SearchParams } from 'nuqs';
 import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 
 type Props = {
-  searchParams: Promise<SearchParams>;
+  params: Promise<{ meetingId: string }>;
 };
 
-export default async function Page({ searchParams }: Props) {
+export default async function Page({ params }: Props) {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
   if (!session) redirect('/sign-in');
 
-  const filters = await loaderSearchParams(searchParams);
+  const { meetingId } = await params;
 
   const queryClient = getQueryClient();
   void queryClient.prefetchQuery(
-    trpc.meetings.getMany.queryOptions({ ...filters })
+    trpc.meetings.getOne.queryOptions({ id: meetingId })
   );
 
   return (
-    <>
-      <AgentsListHeader />
-      <HydrationBoundary state={dehydrate(queryClient)}>
-        <Suspense fallback={<MeetingIdViewLoading />}>
-          <ErrorBoundary fallback={<MeetingIdViewError />}>
-            <MeetingIdView />
-          </ErrorBoundary>
-        </Suspense>
-      </HydrationBoundary>
-    </>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <Suspense fallback={<MeetingIdViewLoading />}>
+        <ErrorBoundary fallback={<MeetingIdViewError />}>
+          <MeetingIdView meetingId={meetingId} />
+        </ErrorBoundary>
+      </Suspense>
+    </HydrationBoundary>
   );
 }
