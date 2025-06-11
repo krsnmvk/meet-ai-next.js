@@ -10,8 +10,26 @@ import {
   MIN_PAGE_SIZE,
 } from '@/constants';
 import { TRPCError } from '@trpc/server';
+import {
+  meetingsInsrtSchema,
+  meetingsUpdateSchema,
+} from '../validation/meetings-schema';
 
 export const meetingsRouter = createTRPCRouter({
+  create: protectProcedure
+    .input(meetingsInsrtSchema)
+    .mutation(async ({ ctx, input }) => {
+      const [data] = await db
+        .insert(meetingsTable)
+        .values({
+          ...input,
+          userId: ctx.auth.user.id,
+        })
+        .returning();
+
+      return data;
+    }),
+
   getMany: protectProcedure
     .input(
       z.object({
@@ -86,6 +104,53 @@ export const meetingsRouter = createTRPCRouter({
 
       if (!data) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Meting not found' });
+      }
+
+      return data;
+    }),
+
+  remove: protectProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const [data] = await db
+        .delete(meetingsTable)
+        .where(
+          and(
+            eq(meetingsTable.id, input.id),
+            eq(meetingsTable.userId, ctx.auth.user.id)
+          )
+        )
+        .returning();
+
+      if (!data) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Meeting not found',
+        });
+      }
+
+      return data;
+    }),
+
+  update: protectProcedure
+    .input(meetingsUpdateSchema)
+    .mutation(async ({ ctx, input }) => {
+      const [data] = await db
+        .update(meetingsTable)
+        .set(input)
+        .where(
+          and(
+            eq(meetingsTable.id, input.id),
+            eq(meetingsTable.userId, ctx.auth.user.id)
+          )
+        )
+        .returning();
+
+      if (!data) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Meeting not found',
+        });
       }
 
       return data;

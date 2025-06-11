@@ -115,7 +115,7 @@ export default function AgentForm({
                 <Input
                   type="text"
                   disabled={isPendingCreate || isPendingUpdate}
-                  placeholder=""
+                  placeholder="e.g. Math Tutor"
                   {...field}
                 />
               </FormControl>
