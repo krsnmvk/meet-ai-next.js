@@ -14,6 +14,8 @@ export const auth = betterAuth({
     },
   }),
 
+  trustedOrigins: ['https://dove-calm-primate.ngrok-free.app'],
+
   advanced: {
     cookies: {
       session_token: {
