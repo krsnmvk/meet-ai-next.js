@@ -1,9 +1,13 @@
 import { db } from '@/drizzle';
 import { agentsTable, meetingsTable } from '@/drizzle/schema';
+import { inngest } from '@/inngest/client';
 import { streamVideo } from '@/lib/stream-video';
 import {
   CallSessionStartedEvent,
   CallSessionParticipantLeftEvent,
+  CallEndedEvent,
+  CallTranscriptionReadyEvent,
+  CallRecordingReadyEvent,
 } from '@stream-io/node-sdk';
 import { and, eq, not } from 'drizzle-orm';
 import { NextRequest, NextResponse } from 'next/server';
@@ -73,7 +77,8 @@ export async function POST(req: NextRequest) {
         status: 'active',
         startedAt: new Date(),
       })
-      .where(eq(meetingsTable.id, existingMeeting.id));
+      .where(eq(meetingsTable.id, existingMeeting.id))
+      .returning();
 
     const [existingAgent] = await db
       .select()
@@ -108,6 +113,75 @@ export async function POST(req: NextRequest) {
 
     const call = streamVideo.video.call('default', meetingId);
     await call.end();
+  } else if (eventType === 'call.session_ended') {
+    const event = payload as CallEndedEvent;
+    const meetingId = event.call.custom.meetingId;
+
+    if (!meetingId) {
+      return NextResponse.json(
+        { error: 'Missing meeting id' },
+        { status: 400 }
+      );
+    }
+
+    await db
+      .update(meetingsTable)
+      .set({
+        status: 'processing',
+        endedAt: new Date(),
+      })
+      .where(
+        and(eq(meetingsTable.id, meetingId), eq(meetingsTable.status, 'active'))
+      )
+      .returning();
+  } else if (eventType === 'call.transcription_ready') {
+    const event = payload as CallTranscriptionReadyEvent;
+    const meetingId = event.call_cid.split(':')[1];
+
+    if (!meetingId) {
+      return NextResponse.json(
+        { error: 'Missing meeting id' },
+        { status: 400 }
+      );
+    }
+
+    const [updateMeeting] = await db
+      .update(meetingsTable)
+      .set({
+        transcriptUrl: event.call_transcription.url,
+      })
+      .where(eq(meetingsTable.id, meetingId))
+      .returning();
+
+    if (!updateMeeting) {
+      return NextResponse.json({ error: 'Meeting not found' }, { status: 404 });
+    }
+
+    await inngest.send({
+      name: 'meetings/processing',
+      data: {
+        meetingId: updateMeeting.id,
+        transcriptUrl: updateMeeting.transcriptUrl,
+      },
+    });
+  } else if (eventType === 'call.recording_ready') {
+    const event = payload as CallRecordingReadyEvent;
+    const meetingId = event.call_cid.split(':')[1];
+
+    if (!meetingId) {
+      return NextResponse.json(
+        { error: 'Missing meeting id' },
+        { status: 400 }
+      );
+    }
+
+    await db
+      .update(meetingsTable)
+      .set({
+        recordingUrl: event.call_recording.url,
+      })
+      .where(eq(meetingsTable.id, meetingId))
+      .returning();
   }
 
   return NextResponse.json({ message: 'OK' }, { status: 200 });
